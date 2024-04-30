@@ -26,7 +26,7 @@ CODEOWNERS = ["@jfurtner"]
 DEPENDENCIES = ["i2c"]
 
 sen0466_sensor_ns = cg.esphome_ns.namespace("sen0466_sensor")
-Sen0466Sensor = sen0466_sensor_ns.class_(
+Sen0466SensorClassId = sen0466_sensor_ns.class_(
     "Sen0466Sensor", cg.PollingComponent, i2c.I2CDevice
 )
 
@@ -35,10 +35,11 @@ TemperatureOffsetClassId = sen0466_sensor_ns.class_(
 
 CONF_CARBON_MONOXIDE = "carbon_monoxide"
 CONF_TEMPERATURE_OFFSET = "temperature_offset"
+
 CONFIG_SCHEMA = (
     cv.Schema(
         {
-            cv.GenerateID(): cv.declare_id(Sen0466Sensor),
+            cv.GenerateID(): cv.declare_id(Sen0466SensorClassId),
             cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 accuracy_decimals=1,
@@ -64,36 +65,18 @@ CONFIG_SCHEMA = (
                         cv.Optional(CONF_NAME, default="Temperature offset"): cv.string_strict("Temperature offset")
                     }
                 ).extend(cv.COMPONENT_SCHEMA),
-                key=CONF_INITIAL_VALUE,#CONF_NAME,
+                key=CONF_INITIAL_VALUE,
             ),
-            
-            
-            #   number.number_schema(
-            #     device_class=DEVICE_CLASS_TEMPERATURE,
-            #     unit_of_measurement=UNIT_CELSIUS,
-            #     entity_category=ENTITY_CATEGORY_CONFIG,
-            #     min_value=-10,
-            #     max_value=+10,
-            #     step=0.1,
-            # ),
-
         },
     )
     .extend(cv.polling_component_schema("60s"))
     .extend(i2c.i2c_device_schema(0x74))
 )
 
-
-
 async def to_code(config):
-    #main_sensor_pvariable = await sensor.new_sensor(config)
-    #await cg.register_component(main_sensor_pvariable, config)
-    #await i2c.register_i2c_device(main_sensor_pvariable, config)
     main_sensor_pvariable = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(main_sensor_pvariable, config)
     await i2c.register_i2c_device(main_sensor_pvariable, config)
-
-    #cg.add()
 
     if temperature_config := config.get(CONF_TEMPERATURE):
         sens = await sensor.new_sensor(temperature_config)
@@ -105,8 +88,4 @@ async def to_code(config):
     
     if temperature_offset_config := config.get(CONF_TEMPERATURE_OFFSET):
         sens = await number.new_number(temperature_offset_config, min_value=-10, max_value=10, step=0.1, )
-        #cg.add(main_sensor_pvariable.set_temperature_offset(sens))
         await cg.register_parented(sens, main_sensor_pvariable)
-        #cg.add(main_sensor_pvariable.set_temperature_offset(sens))
-
-        
