@@ -11,6 +11,12 @@ https://wiki.dfrobot.com/SKU_SEN0465toSEN0476_Gravity_Gas_Sensor_Calibrated_I2C_
 
 Configuration stanza:
 ```
+external_components:
+  - source:
+      type: git
+      url: https://github.com/jfurtner/dfrobot_sen0466.git 
+    components: [sen0466]
+
 sensor:
   - platform: sen0466
     temperature:
